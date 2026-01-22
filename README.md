@@ -1,326 +1,251 @@
 # Live Code Execution Service
 
-A backend service that supports **live coding sessions**, **autosave**, and **asynchronous code execution** using a **queue-based architecture**.
-
-This project is implemented as a take-home assignment focusing on **backend architecture, async processing, reliability, and scalability trade-offs**.
-
----
-
-## 1. Tech Stack
-
-- **Backend Framework**: NestJS (Node.js)
-- **Database**: sql.js (in-memory SQLite)
-- **Queue**: BullMQ + Redis
-- **Worker**: NestJS-based background worker
-- **Execution Runtime**: Python
-- **API Documentation**: Swagger (OpenAPI)
-- **Containerization**: Docker & Docker Compose
+A backend service that supports live code execution for coding sessions.  
+The system is designed to execute user-submitted code **asynchronously**, using a **queue-based worker architecture**, ensuring scalability, isolation, and non-blocking APIs.
 
 ---
 
-## 2. Setup Instructions (Local Development)
+## 1. Setup Instructions (Local Development)
 
-### 2.1 Prerequisites
-
+### Prerequisites
 - Node.js >= 18
-- Docker & Docker Compose
-- npm or yarn
+- Redis (local or cloud, e.g. RedisLabs / Render Redis)
+- npm
 
----
-
-### 2.2 Clone Repository
-
+### Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/Vinhf/live-code-execution.git
 cd live-code-execution
 ```
 
-### 2.3 Start Infrastructure (Redis)
-
-```bash
-docker-compose up -d
-```
-
-This will start:
-
-- Redis (used for job queue)
-
-### 2.4 Install Dependencies
-
+### Install Dependencies
 ```bash
 npm install
 ```
 
-### 2.5 Run Application
+### Environment Configuration
+Create a `.env` file (do NOT commit this file):
 
+```env
+NODE_ENV=development
+PORT=3000
+
+DB_TYPE=sqljs
+DB_SYNCHRONIZE=true
+DB_LOGGING=false
+
+REDIS_HOST=your-redis-host
+REDIS_PORT=your-redis-port
+REDIS_PASSWORD=your-redis-password
+REDIS_TLS=false
+
+EXECUTION_QUEUE_NAME=execution-queue
+
+SWAGGER_ENABLE=true
+```
+
+⚠️ `.env` must be added to `.gitignore` to avoid leaking secrets.
+
+### Run the Application
 ```bash
 npm run start:dev
 ```
 
-The server will be available at:
-
+Swagger UI (if enabled):
 ```
-http://localhost:3000
-```
-
-### 2.6 API Documentation (Swagger)
-
-Swagger UI is available at:
-
-```
-http://localhost:3000/api-docs
-```
-
-- Only public-facing APIs are exposed in Swagger.
-- Debug/internal endpoints are intentionally excluded.
-
----
-
-## 3. Architecture Overview
-
-### 3.1 High-Level Architecture
-
-```
-Client (Postman / Swagger / UI)
-        |
-        v
-   NestJS API Server
-        |
-        |  (enqueue execution job)
-        v
-     Redis Queue (BullMQ)
-        |
-        v
- Background Worker
- (Python code execution)
-        |
-        v
-   sql.js (in-memory DB)
+http://localhost:3000/api
 ```
 
 ---
 
-## 4. End-to-End Request Flow
+## 2. High-Level Architecture Overview
 
-### 4.1 Code Session Creation
+This system follows an asynchronous, event-driven architecture.
 
-1. Client sends a request to create a new code session
-2. Backend creates a CodeSession record
-3. A `session_id` is returned immediately
+### Core Components
 
-### 4.2 Autosave Behavior
+**API Server (NestJS)**  
+Handles HTTP requests, validation, and job submission.
 
-1. Client periodically sends updated source code
-2. Backend updates the existing session record
-3. Autosave does not trigger execution
+**Redis Queue**  
+Acts as a message broker for execution jobs.
 
-### 4.3 Execution Request
+**Worker Process**  
+Consumes jobs from the queue and executes code in the background.
 
-1. Client requests code execution
-2. Backend:
-   - Creates an Execution record with status `QUEUED`
-   - Pushes a job to Redis queue
-   - Returns `execution_id` immediately (non-blocking)
-
-### 4.4 Background Execution
-
-1. Worker consumes job from queue
-2. Updates execution status to `RUNNING`
-3. Executes Python code with a timeout
-4. Captures:
-   - stdout
-   - stderr
-   - execution time
-5. Updates execution status accordingly
-
-### 4.5 Result Polling
-
-1. Client polls execution result using `execution_id`
-2. Backend returns current execution state and output
+**Database (SQL.js)**  
+Stores code sessions, executions, and execution results.
 
 ---
 
-## 5. Queue-Based Execution Design
+## 3. End-to-End Request Flow
 
-- BullMQ is used to decouple API and execution
-- API remains responsive under load
-- Redis provides reliable job buffering
-- Workers can be scaled independently
+### 3.1 Code Session Creation
+1. Client sends request to create a code session.
+2. API stores session metadata in the database.
+3. Session ID is returned to the client.
+
+### 3.2 Autosave Behavior
+1. Client periodically sends code updates.
+2. API updates the session content.
+3. No execution is triggered during autosave.
+4. Autosave is lightweight and does not interact with the execution queue.
+
+### 3.3 Execution Request
+1. Client requests code execution.
+2. API creates an Execution record with state `QUEUED`.
+3. Execution job is pushed into Redis queue.
+4. API immediately returns `executionId`.
+
+### 3.4 Background Execution
+1. Worker picks up the job from the queue.
+2. Execution state transitions to `RUNNING`.
+3. Code is executed in an isolated process (conceptual isolation).
+4. Time and resource limits are enforced.
+5. Result or error is stored.
+6. Execution state transitions to:
+   - `COMPLETED`
+   - `FAILED`
+   - `TIMEOUT`
+
+### 3.5 Result Polling
+1. Client polls execution status via API.
+2. API returns execution state and output if available.
 
 ---
 
-## 6. Execution Lifecycle & State Management
+## 4. Queue-Based Execution Design
 
-### 6.1 Execution States
+- Redis is used as a message broker.
+- Each execution is represented as a job.
+- API layer never executes code directly.
+- Workers can scale independently from API servers.
 
+**Benefits:**
+- Non-blocking HTTP requests
+- Fault isolation
+- Horizontal scalability
+
+---
+
+## 5. Execution Lifecycle & State Management
+
+### Execution States
 ```
 QUEUED → RUNNING → COMPLETED
-                   FAILED
-                   TIMEOUT
+                 → FAILED
+                 → TIMEOUT
 ```
 
-### 6.2 State Descriptions
-
-- **QUEUED**: Execution request accepted and queued
-- **RUNNING**: Worker is executing the code
+### State Transition Rules
+- **QUEUED**: Job is accepted and waiting in queue
+- **RUNNING**: Worker has started execution
 - **COMPLETED**: Execution finished successfully
-- **FAILED**: Runtime or syntax error
-- **TIMEOUT**: Execution exceeded time limit
+- **FAILED**: Runtime or system error occurred
+- **TIMEOUT**: Execution exceeded allowed time limit
 
 ---
 
-## 7. API Documentation
+## 6. Reliability & Data Model
 
-### 7.1 Create Code Session
+### 6.1 Idempotency Handling
+- Each execution request generates a unique `executionId`.
+- Duplicate execution requests for the same session can be detected.
+- Workers safely reprocess jobs using execution state checks.
 
-**POST** `/code-sessions`
+### 6.2 Failure Handling
+- Transient failures are retried automatically via queue configuration.
+- Max retry attempts are limited.
+- Failed executions are marked with error details.
+- Dead or permanently failed jobs can be inspected manually.
 
-Response:
+---
 
+## 7. Scalability Considerations
+
+### 7.1 Concurrent Live Coding Sessions
+- Stateless API servers allow horizontal scaling.
+- Redis queue buffers load during traffic spikes.
+
+### 7.2 Horizontal Worker Scaling
+- Multiple workers can consume from the same queue.
+- Execution throughput increases linearly with worker count.
+
+### 7.3 Queue Backlog Handling
+- Redis acts as a buffer when execution demand exceeds capacity.
+- Backpressure prevents API overload.
+
+### 7.4 Potential Bottlenecks & Mitigation
+
+| Bottleneck | Mitigation |
+|------------|------------|
+| Redis overload | Dedicated Redis instance |
+| Long-running jobs | Strict time limits |
+| High memory usage | Memory limits per execution |
+| Worker crash | Retry & job reprocessing |
+
+---
+
+## 8. API Documentation (Overview)
+
+### Create Execution
+**POST** `/executions`
+
+**Request:**
 ```json
 {
-  "session_id": "uuid",
-  "status": "ACTIVE"
+  "sessionId": "string",
+  "language": "javascript",
+  "code": "console.log('Hello');"
 }
 ```
 
-### 7.2 Autosave Code
-
-**PATCH** `/code-sessions/{session_id}`
-
-Request:
-
+**Response:**
 ```json
 {
-  "language": "python",
-  "sourceCode": "print('Hello World')"
-}
-```
-
-### 7.3 Run Code
-
-**POST** `/sessions/{session_id}/run`
-
-Response:
-
-```json
-{
-  "execution_id": "uuid",
+  "executionId": "uuid",
   "status": "QUEUED"
 }
 ```
 
-### 7.4 Get Execution Result
+### Get Execution Result
+**GET** `/executions/:id`
 
-**GET** `/executions/{execution_id}`
-
-Response:
-
+**Response:**
 ```json
 {
-  "execution_id": "uuid",
+  "executionId": "uuid",
   "status": "COMPLETED",
-  "stdout": "Hello World\n",
-  "stderr": "",
-  "execution_time_ms": 120
+  "output": "Hello"
 }
 ```
 
 ---
 
-## 8. Reliability & Data Model
+## 9. Trade-offs & Design Decisions
 
-### 8.1 Idempotency Handling
+### Technology Choices
+- **NestJS**: Structured, scalable backend framework
+- **Redis Queue**: Reliable async processing
+- **SQL.js**: Simple embedded database for demo purposes
 
-- Each execution request generates a unique `execution_id`
-- Executions are immutable once created
-- Duplicate execution runs are avoided by design
+### Optimization Focus
+- Prioritized simplicity and correctness over maximum performance
+- Clear separation of concerns between API and execution
+- Async-first design to prevent blocking
 
-### 8.2 Failure Handling
-
-- Runtime errors captured in `stderr`
-- Timeouts handled explicitly
-- Failed jobs do not crash API server
-- Queue supports retries if needed
-- Failed executions are persisted for inspection
-
----
-
-## 9. Scalability Considerations
-
-### 9.1 Concurrent Sessions
-
-- API servers are stateless
-- Sessions stored in database
-- Queue buffers traffic spikes
-
-### 9.2 Horizontal Scaling of Workers
-
-- Multiple workers can consume the same queue
-- Redis ensures job locking
-- Workers can be scaled independently
-
-### 9.3 Potential Bottlenecks & Mitigation
-
-| Bottleneck | Mitigation Strategy |
-|------------|---------------------|
-| High execution volume | Queue rate limiting |
-| Long-running code | Strict execution timeout |
-| Redis overload | Increase Redis resources |
-| Worker saturation | Horizontal scaling |
-
----
-
-## 10. Design Decisions & Trade-offs
-
-### 10.1 Technology Choices
-
-- **NestJS**: Structured, modular, testable backend
-- **BullMQ**: Reliable async job processing
-- **sql.js**:
-  - Pros: Zero setup, fast local development
-  - Cons: Non-persistent, in-memory only
-
-### 10.2 Optimization Focus
-
-- Simplicity and clarity over full production readiness
-- Fast setup for reviewers
-- Clear execution lifecycle and flow
-
-### 10.3 Production Readiness Gaps
-
-- No persistent database
-- No authentication or authorization
-- Limited sandboxing for code execution
-- No rate limiting or quotas
-- No monitoring or alerting
-
----
-
-## 11. Improvements With More Time
-
+### Production Readiness Gaps
+- True container-level isolation (Docker / Firecracker)
+- Stronger sandboxing and security hardening
 - Persistent database (PostgreSQL)
-- Secure sandboxing (Docker / Firecracker)
-- Multi-language support
+- Metrics, tracing, and monitoring
 - Authentication & authorization
+
+---
+
+## 10. Future Improvements
+
+- Support multiple programming languages
 - WebSocket-based real-time execution updates
-- Metrics and monitoring (Prometheus + Grafana)
-
----
-
-## 12. Notes
-
-- Debug endpoints are provided for development purposes only
-- Debug APIs are excluded from Swagger documentation intentionally
-- sql.js is used to simplify setup and evaluation
-
----
-
-## 13. Summary
-
-This project demonstrates:
-
-- Asynchronous backend design
-- Queue-based execution architecture
-- Clear separation of concerns
-- Practical trade-offs for a take-home assignment
+- Execution resource quotas per user
+- Advanced sandboxing with containers
