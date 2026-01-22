@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from './queue/queue.module';
@@ -7,6 +8,10 @@ import { ExecutionModule } from './execution/execution.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || 'localhost',
@@ -14,7 +19,6 @@ import { ExecutionModule } from './execution/execution.module';
         tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
       },
     }),
-
     TypeOrmModule.forRoot({
       type: 'sqljs',
       autoSave: true,
