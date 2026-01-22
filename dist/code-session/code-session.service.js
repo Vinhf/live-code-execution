@@ -22,18 +22,21 @@ let CodeSessionService = class CodeSessionService {
     constructor(repo) {
         this.repo = repo;
     }
-    create(language) {
+    async create(language) {
         return this.repo.save({
             language,
             sourceCode: '',
             status: 'ACTIVE',
         });
     }
-    update(id, sourceCode) {
+    async update(id, sourceCode) {
         return this.repo.update(id, { sourceCode });
     }
-    findById(id) {
+    async findById(id) {
         return this.repo.findOneBy({ id });
+    }
+    async getAllSessions() {
+        return this.repo.find();
     }
 };
 exports.CodeSessionService = CodeSessionService;

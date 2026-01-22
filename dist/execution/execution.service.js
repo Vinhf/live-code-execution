@@ -39,8 +39,33 @@ let ExecutionService = class ExecutionService {
         });
         return execution;
     }
-    findById(id) {
-        return this.repo.findOneBy({ id });
+    async findById(id) {
+        const execution = await this.repo.findOneBy({ id });
+        if (!execution) {
+            throw new common_1.NotFoundException('Execution not found');
+        }
+        return {
+            execution_id: execution.id,
+            status: execution.status,
+            stdout: execution.stdout ?? '',
+            stderr: execution.stderr ?? '',
+            execution_time_ms: execution.executionTimeMs ?? 0,
+        };
+    }
+    async enqueueExecution(payload) {
+        const job = await this.queue.add('execute', payload);
+        return {
+            jobId: job.id,
+            status: 'queued',
+        };
+    }
+    getAllExecutions() {
+        return this.repo.find();
+    }
+    getExecutionsBySession(sessionId) {
+        return this.repo.find({
+            where: { session: { id: sessionId } },
+        });
     }
 };
 exports.ExecutionService = ExecutionService;

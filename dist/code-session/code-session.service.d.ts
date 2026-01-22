@@ -10,4 +10,5 @@ export declare class CodeSessionService {
     } & CodeSession>;
     update(id: string, sourceCode: string): Promise<import("typeorm").UpdateResult>;
     findById(id: string): Promise<CodeSession | null>;
+    getAllSessions(): Promise<CodeSession[]>;
 }

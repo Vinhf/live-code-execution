@@ -11,4 +11,5 @@ export declare class CodeSessionController {
         session_id: string;
         status: string;
     }>;
+    getAll(): Promise<import("./code-session.entity").CodeSession[]>;
 }

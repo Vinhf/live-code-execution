@@ -9,10 +9,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
+const bullmq_1 = require("@nestjs/bullmq");
 const queue_module_1 = require("./queue/queue.module");
 const code_session_module_1 = require("./code-session/code-session.module");
 const execution_module_1 = require("./execution/execution.module");
-const bullmq_1 = require("@nestjs/bullmq");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -21,13 +21,14 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             bullmq_1.BullModule.forRoot({
                 connection: {
-                    host: process.env.REDIS_HOST || 'redis',
+                    host: 'localhost',
                     port: 6379,
                 },
             }),
             typeorm_1.TypeOrmModule.forRoot({
-                type: 'sqlite',
-                database: 'db.sqlite',
+                type: 'sqljs',
+                autoSave: true,
+                location: 'livecode-db',
                 autoLoadEntities: true,
                 synchronize: true,
             }),

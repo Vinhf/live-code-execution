@@ -7,19 +7,16 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QueueModule = void 0;
-const bullmq_1 = require("@nestjs/bullmq");
 const common_1 = require("@nestjs/common");
+const bullmq_1 = require("@nestjs/bullmq");
 let QueueModule = class QueueModule {
 };
 exports.QueueModule = QueueModule;
 exports.QueueModule = QueueModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            bullmq_1.BullModule.forRoot({
-                connection: {
-                    host: 'localhost',
-                    port: 6379,
-                },
+            bullmq_1.BullModule.registerQueue({
+                name: 'execution-queue',
             }),
         ],
         exports: [bullmq_1.BullModule],

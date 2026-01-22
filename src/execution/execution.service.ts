@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Execution } from './execution.entity';
 import { Repository } from 'typeorm';
@@ -31,7 +31,37 @@ export class ExecutionService {
     return execution;
   }
 
-  findById(id: string) {
-    return this.repo.findOneBy({ id });
+  async findById(id: string) {
+    const execution = await this.repo.findOneBy({ id });
+
+    if (!execution) {
+      throw new NotFoundException('Execution not found');
+    }
+
+    return {
+      execution_id: execution.id,
+      status: execution.status,
+      stdout: execution.stdout ?? '',
+      stderr: execution.stderr ?? '',
+      execution_time_ms: execution.executionTimeMs ?? 0,
+    };
+  }
+
+  async enqueueExecution(payload: any) {
+    const job = await this.queue.add('execute', payload);
+    return {
+      jobId: job.id,
+      status: 'queued',
+    };
+  }
+
+  getAllExecutions() {
+    return this.repo.find();
+  }
+
+  getExecutionsBySession(sessionId: string) {
+    return this.repo.find({
+      where: { session: { id: sessionId } },
+    });
   }
 }

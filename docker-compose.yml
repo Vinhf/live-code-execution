@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  
   redis:
     image: redis:7-alpine
     ports:
@@ -9,13 +8,7 @@ services:
 
   api:
     build: .
-    container_name: live-code-api
-    command: npm run start:prod
     ports:
       - "3000:3000"
     depends_on:
       - redis
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - NODE_ENV=production

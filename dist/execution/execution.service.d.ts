@@ -11,5 +11,17 @@ export declare class ExecutionService {
         session: CodeSession;
         status: ExecutionStatus;
     } & Execution>;
-    findById(id: string): Promise<Execution | null>;
+    findById(id: string): Promise<{
+        execution_id: string;
+        status: string;
+        stdout: string;
+        stderr: string;
+        execution_time_ms: number;
+    }>;
+    enqueueExecution(payload: any): Promise<{
+        jobId: string | undefined;
+        status: string;
+    }>;
+    getAllExecutions(): Promise<Execution[]>;
+    getExecutionsBySession(sessionId: string): Promise<Execution[]>;
 }

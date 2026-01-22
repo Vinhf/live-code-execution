@@ -10,7 +10,7 @@ export class CodeSessionService {
     private repo: Repository<CodeSession>,
   ) {}
 
-  create(language: string) {
+  async create(language: string) {
     return this.repo.save({
       language,
       sourceCode: '',
@@ -18,11 +18,15 @@ export class CodeSessionService {
     });
   }
 
-  update(id: string, sourceCode: string) {
+  async update(id: string, sourceCode: string) {
     return this.repo.update(id, { sourceCode });
   }
 
-  findById(id: string) {
+  async findById(id: string) {
     return this.repo.findOneBy({ id });
+  }
+
+  async getAllSessions() {
+    return this.repo.find();
   }
 }

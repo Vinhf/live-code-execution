@@ -13,7 +13,7 @@ import { ExecutionProcessor } from './execution.processor';
     BullModule.registerQueue({
       name: 'execution-queue',
     }),
-    CodeSessionModule, // dùng session
+    CodeSessionModule,
   ],
   controllers: [ExecutionController],
   providers: [ExecutionService, ExecutionProcessor],
