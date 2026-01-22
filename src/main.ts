@@ -5,15 +5,17 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const config = new DocumentBuilder()
-    .setTitle('Live Code Execution API')
-    .setDescription('API for live coding sessions and async code execution')
-    .setVersion('1.0')
-    .build();
+  if (process.env.SWAGGER_ENABLE === 'true') {
+    const config = new DocumentBuilder()
+      .setTitle('Live Code Execution API')
+      .setVersion('1.0')
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api-docs', app, document);
+  }
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
 }
+
 bootstrap();
