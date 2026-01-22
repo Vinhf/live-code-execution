@@ -1,4 +1,4 @@
-import { CodeSession } from 'src/code-session/code-session.entity';
+import { CodeSession } from '../code-session/code-session.entity';
 import {
   Column,
   CreateDateColumn,

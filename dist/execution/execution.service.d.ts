@@ -1,8 +1,8 @@
 import { Execution } from './execution.entity';
 import { Repository } from 'typeorm';
 import { Queue } from 'bullmq';
-import { CodeSession } from 'src/code-session/code-session.entity';
-import { ExecutionStatus } from 'src/common/enums/execution-status.enum';
+import { CodeSession } from '../code-session/code-session.entity';
+import { ExecutionStatus } from '../common/enums/execution-status.enum';
 export declare class ExecutionService {
     private repo;
     private queue;

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ExecutionService } from './execution.service';
-import { CodeSessionService } from 'src/code-session/code-session.service';
+import { CodeSessionService } from '../code-session/code-session.service';
 import {
   ApiExcludeEndpoint,
   ApiOperation,
