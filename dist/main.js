@@ -5,14 +5,15 @@ const app_module_1 = require("./app.module");
 const swagger_1 = require("@nestjs/swagger");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    const config = new swagger_1.DocumentBuilder()
-        .setTitle('Live Code Execution API')
-        .setDescription('API for live coding sessions and async code execution')
-        .setVersion('1.0')
-        .build();
-    const document = swagger_1.SwaggerModule.createDocument(app, config);
-    swagger_1.SwaggerModule.setup('api-docs', app, document);
-    await app.listen(3000);
+    if (process.env.SWAGGER_ENABLE === 'true') {
+        const config = new swagger_1.DocumentBuilder()
+            .setTitle('Live Code Execution API')
+            .setVersion('1.0')
+            .build();
+        const document = swagger_1.SwaggerModule.createDocument(app, config);
+        swagger_1.SwaggerModule.setup('api-docs', app, document);
+    }
+    await app.listen(process.env.PORT || 3000);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

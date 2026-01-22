@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
 const bullmq_1 = require("@nestjs/bullmq");
 const queue_module_1 = require("./queue/queue.module");
@@ -19,10 +20,16 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
+            config_1.ConfigModule.forRoot({
+                isGlobal: true,
+                envFilePath: '.env',
+            }),
             bullmq_1.BullModule.forRoot({
                 connection: {
-                    host: 'localhost',
-                    port: 6379,
+                    host: process.env.REDIS_HOST || 'localhost',
+                    port: Number(process.env.REDIS_PORT) || 6379,
+                    password: process.env.REDIS_PASSWORD || undefined,
+                    tls: process.env.REDIS_TLS === 'true' ? {} : undefined,
                 },
             }),
             typeorm_1.TypeOrmModule.forRoot({
