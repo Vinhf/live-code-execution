@@ -1,98 +1,337 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Live Code Execution Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A backend service that supports **live coding sessions**, **autosave**, and **asynchronous code execution** using a **queue-based architecture**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project is implemented as a take-home assignment focusing on **backend architecture, async processing, reliability, and scalability trade-offs**.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 1. Tech Stack
 
-## Project setup
+- **Backend Framework**: NestJS (Node.js)
+- **Database**: sql.js (in-memory SQLite)
+- **Queue**: BullMQ + Redis
+- **Worker**: NestJS-based background worker
+- **Execution Runtime**: Python
+- **API Documentation**: Swagger (OpenAPI)
+- **Containerization**: Docker & Docker Compose
 
-```bash
-$ npm install
-```
+---
 
-## Compile and run the project
+## 2. Setup Instructions (Local Development)
+
+### 2.1 Prerequisites
+
+- Node.js >= 18
+- Docker & Docker Compose
+- npm or yarn
+
+---
+
+### 2.2 Clone Repository
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <repository-url>
+cd live-code-execution
 ```
 
-## Run tests
+### 2.3 Start Infrastructure (Redis)
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker-compose up -d
 ```
 
-## Deployment
+This will start:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+- Redis (used for job queue)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 2.4 Install Dependencies
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 2.5 Run Application
 
-## Resources
+```bash
+npm run start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+The server will be available at:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```
+http://localhost:3000
+```
 
-## Support
+### 2.6 API Documentation (Swagger)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Swagger UI is available at:
 
-## Stay in touch
+```
+http://localhost:3000/api-docs
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+- Only public-facing APIs are exposed in Swagger.
+- Debug/internal endpoints are intentionally excluded.
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 3. Architecture Overview
+
+### 3.1 High-Level Architecture
+
+```
+Client (Postman / Swagger / UI)
+        |
+        v
+   NestJS API Server
+        |
+        |  (enqueue execution job)
+        v
+     Redis Queue (BullMQ)
+        |
+        v
+ Background Worker
+ (Python code execution)
+        |
+        v
+   sql.js (in-memory DB)
+```
+
+---
+
+## 4. End-to-End Request Flow
+
+### 4.1 Code Session Creation
+
+1. Client sends a request to create a new code session
+2. Backend creates a CodeSession record
+3. A `session_id` is returned immediately
+
+### 4.2 Autosave Behavior
+
+1. Client periodically sends updated source code
+2. Backend updates the existing session record
+3. Autosave does not trigger execution
+
+### 4.3 Execution Request
+
+1. Client requests code execution
+2. Backend:
+   - Creates an Execution record with status `QUEUED`
+   - Pushes a job to Redis queue
+   - Returns `execution_id` immediately (non-blocking)
+
+### 4.4 Background Execution
+
+1. Worker consumes job from queue
+2. Updates execution status to `RUNNING`
+3. Executes Python code with a timeout
+4. Captures:
+   - stdout
+   - stderr
+   - execution time
+5. Updates execution status accordingly
+
+### 4.5 Result Polling
+
+1. Client polls execution result using `execution_id`
+2. Backend returns current execution state and output
+
+---
+
+## 5. Queue-Based Execution Design
+
+- BullMQ is used to decouple API and execution
+- API remains responsive under load
+- Redis provides reliable job buffering
+- Workers can be scaled independently
+
+---
+
+## 6. Execution Lifecycle & State Management
+
+### 6.1 Execution States
+
+```
+QUEUED → RUNNING → COMPLETED
+                   FAILED
+                   TIMEOUT
+```
+
+### 6.2 State Descriptions
+
+- **QUEUED**: Execution request accepted and queued
+- **RUNNING**: Worker is executing the code
+- **COMPLETED**: Execution finished successfully
+- **FAILED**: Runtime or syntax error
+- **TIMEOUT**: Execution exceeded time limit
+
+---
+
+## 7. API Documentation
+
+### 7.1 Create Code Session
+
+**POST** `/code-sessions`
+
+Response:
+
+```json
+{
+  "session_id": "uuid",
+  "status": "ACTIVE"
+}
+```
+
+### 7.2 Autosave Code
+
+**PATCH** `/code-sessions/{session_id}`
+
+Request:
+
+```json
+{
+  "language": "python",
+  "sourceCode": "print('Hello World')"
+}
+```
+
+### 7.3 Run Code
+
+**POST** `/sessions/{session_id}/run`
+
+Response:
+
+```json
+{
+  "execution_id": "uuid",
+  "status": "QUEUED"
+}
+```
+
+### 7.4 Get Execution Result
+
+**GET** `/executions/{execution_id}`
+
+Response:
+
+```json
+{
+  "execution_id": "uuid",
+  "status": "COMPLETED",
+  "stdout": "Hello World\n",
+  "stderr": "",
+  "execution_time_ms": 120
+}
+```
+
+---
+
+## 8. Reliability & Data Model
+
+### 8.1 Idempotency Handling
+
+- Each execution request generates a unique `execution_id`
+- Executions are immutable once created
+- Duplicate execution runs are avoided by design
+
+### 8.2 Failure Handling
+
+- Runtime errors captured in `stderr`
+- Timeouts handled explicitly
+- Failed jobs do not crash API server
+- Queue supports retries if needed
+- Failed executions are persisted for inspection
+
+---
+
+## 9. Scalability Considerations
+
+### 9.1 Concurrent Sessions
+
+- API servers are stateless
+- Sessions stored in database
+- Queue buffers traffic spikes
+
+### 9.2 Horizontal Scaling of Workers
+
+- Multiple workers can consume the same queue
+- Redis ensures job locking
+- Workers can be scaled independently
+
+### 9.3 Potential Bottlenecks & Mitigation
+
+| Bottleneck | Mitigation Strategy |
+|------------|---------------------|
+| High execution volume | Queue rate limiting |
+| Long-running code | Strict execution timeout |
+| Redis overload | Increase Redis resources |
+| Worker saturation | Horizontal scaling |
+
+---
+
+## 10. Design Decisions & Trade-offs
+
+### 10.1 Technology Choices
+
+- **NestJS**: Structured, modular, testable backend
+- **BullMQ**: Reliable async job processing
+- **sql.js**:
+  - Pros: Zero setup, fast local development
+  - Cons: Non-persistent, in-memory only
+
+### 10.2 Optimization Focus
+
+- Simplicity and clarity over full production readiness
+- Fast setup for reviewers
+- Clear execution lifecycle and flow
+
+### 10.3 Production Readiness Gaps
+
+- No persistent database
+- No authentication or authorization
+- Limited sandboxing for code execution
+- No rate limiting or quotas
+- No monitoring or alerting
+
+---
+
+## 11. Improvements With More Time
+
+- Persistent database (PostgreSQL)
+- Secure sandboxing (Docker / Firecracker)
+- Multi-language support
+- Authentication & authorization
+- WebSocket-based real-time execution updates
+- Metrics and monitoring (Prometheus + Grafana)
+
+---
+
+## 12. Notes
+
+- Debug endpoints are provided for development purposes only
+- Debug APIs are excluded from Swagger documentation intentionally
+- sql.js is used to simplify setup and evaluation
+
+---
+
+## 13. Summary
+
+This project demonstrates:
+
+- Asynchronous backend design
+- Queue-based execution architecture
+- Clear separation of concerns
+- Practical trade-offs for a take-home assignment
+
+---
+
+### ✅ Checklist
+
+- ✔ Hướng dẫn setup  
+- ✔ Sơ đồ & giải thích kiến trúc  
+- ✔ API documentation  
+- ✔ Design decisions & trade-offs  
+- ✔ Architecture + Reliability + Scalability  
+- ✔ Production gaps & improvements
